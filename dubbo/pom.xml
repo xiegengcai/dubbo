@@ -44,6 +44,16 @@
 			<groupId>com.alibaba</groupId>
 			<artifactId>dubbo-config-spring</artifactId>
 			<version>${project.parent.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.springframework</groupId>
+					<artifactId>spring-beans</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.springframework</groupId>
+					<artifactId>spring-context</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>com.alibaba</groupId>
@@ -196,6 +206,7 @@
 			<artifactId>dubbo-registry-zookeeper</artifactId>
 			<version>${project.parent.version}</version>
 			<exclusions>
+				<!--
 				<exclusion>
 					<groupId>org.apache.zookeeper</groupId>
 		    		<artifactId>zookeeper</artifactId>
@@ -204,6 +215,7 @@
 					<groupId>com.101tec</groupId>
 					<artifactId>zkclient</artifactId>
 				</exclusion>
+				-->
 				<exclusion>
 					<groupId>com.netflix.curator</groupId>
 					<artifactId>curator-framework</artifactId>
@@ -257,6 +269,10 @@
 					<artifactId>logback-classic</artifactId>
 				</exclusion>
 			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>com.alibaba</groupId>
+			<artifactId>fastjson</artifactId>
 		</dependency>
 	</dependencies>
 	<build>
