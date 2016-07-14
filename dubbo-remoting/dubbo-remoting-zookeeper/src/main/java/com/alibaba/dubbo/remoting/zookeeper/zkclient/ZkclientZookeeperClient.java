@@ -35,6 +35,11 @@ public class ZkclientZookeeperClient extends AbstractZookeeperClient<IZkChildLis
 			public void handleNewSession() throws Exception {
 				stateChanged(StateListener.RECONNECTED);
 			}
+
+			public void handleSessionEstablishmentError(Throwable throwable) throws Exception {
+				logger.error("SessionEstablishmentError", throwable);
+				throw new Exception(throwable);
+			}
 		});
 	}
 

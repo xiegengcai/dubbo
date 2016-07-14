@@ -15,14 +15,15 @@
  */
 package com.alibaba.dubbo.demo.consumer;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
 import com.alibaba.dubbo.demo.DemoService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DemoAction {
     
     private DemoService demoService;
+
+    private static final Logger logger = LoggerFactory.getLogger(DemoAction.class);
 
     public void setDemoService(DemoService demoService) {
         this.demoService = demoService;
@@ -31,8 +32,7 @@ public class DemoAction {
 	public void start() throws Exception {
         for (int i = 0; i < Integer.MAX_VALUE; i ++) {
             try {
-            	String hello = demoService.sayHello("world" + i);
-                System.out.println("[" + new SimpleDateFormat("HH:mm:ss").format(new Date()) + "] " + hello);
+                logger.info(demoService.sayHello("world" + i));
             } catch (Exception e) {
                 e.printStackTrace();
             }
