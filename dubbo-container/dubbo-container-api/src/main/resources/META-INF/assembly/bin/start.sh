@@ -1,4 +1,7 @@
 #!/bin/bash
+
+JAVA_BIN="/opt/jdk1.8.0_101/bin"
+
 cd `dirname $0`
 BIN_DIR=`pwd`
 cd ..
@@ -61,21 +64,13 @@ else
 fi
 
 echo -e "Starting the $SERVER_NAME ...\c"
-nohup java $JAVA_OPTS $JAVA_MEM_OPTS $JAVA_DEBUG_OPTS $JAVA_JMX_OPTS -classpath $CONF_DIR:$LIB_JARS com.alibaba.dubbo.container.Main > $STDOUT_FILE 2>&1 &
+nohup $JAVA_BIN/java $JAVA_OPTS $JAVA_MEM_OPTS $JAVA_DEBUG_OPTS $JAVA_JMX_OPTS -classpath $CONF_DIR:$LIB_JARS com.alibaba.dubbo.container.Main > $STDOUT_FILE 2>&1 &
 
 COUNT=0
 while [ $COUNT -lt 1 ]; do    
     echo -e ".\c"
     sleep 1 
-    if [ -n "$SERVER_PORT" ]; then
-        if [ "$SERVER_PROTOCOL" == "dubbo" ]; then
-    	    COUNT=`echo status | nc -i 1 127.0.0.1 $SERVER_PORT | grep -c OK`
-        else
-            COUNT=`netstat -an | grep $SERVER_PORT | wc -l`
-        fi
-    else
-    	COUNT=`ps -f | grep java | grep "$DEPLOY_DIR" | awk '{print $2}' | wc -l`
-    fi
+    COUNT=`ps -f | grep java | grep "$DEPLOY_DIR" | awk '{print $2}' | wc -l`
     if [ $COUNT -gt 0 ]; then
         break
     fi

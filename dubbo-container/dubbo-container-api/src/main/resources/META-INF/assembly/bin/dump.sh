@@ -1,4 +1,7 @@
 #!/bin/bash
+
+JAVA_BIN="/opt/jdk1.8.0_101/bin"
+
 cd `dirname $0`
 BIN_DIR=`pwd`
 cd ..
@@ -39,19 +42,19 @@ fi
 
 echo -e "Dumping the $SERVER_NAME ...\c"
 for PID in $PIDS ; do
-	jstack $PID > $DATE_DIR/jstack-$PID.dump 2>&1
+	$JAVA_BIN/jstack $PID > $DATE_DIR/jstack-$PID.dump 2>&1
 	echo -e ".\c"
 	jinfo $PID > $DATE_DIR/jinfo-$PID.dump 2>&1
 	echo -e ".\c"
-	jstat -gcutil $PID > $DATE_DIR/jstat-gcutil-$PID.dump 2>&1
+	$JAVA_BIN/jstat -gcutil $PID > $DATE_DIR/jstat-gcutil-$PID.dump 2>&1
 	echo -e ".\c"
-	jstat -gccapacity $PID > $DATE_DIR/jstat-gccapacity-$PID.dump 2>&1
+	$JAVA_BIN/jstat -gccapacity $PID > $DATE_DIR/jstat-gccapacity-$PID.dump 2>&1
 	echo -e ".\c"
-	jmap $PID > $DATE_DIR/jmap-$PID.dump 2>&1
+	$JAVA_BIN/jmap $PID > $DATE_DIR/jmap-$PID.dump 2>&1
 	echo -e ".\c"
-	jmap -heap $PID > $DATE_DIR/jmap-heap-$PID.dump 2>&1
+	$JAVA_BIN/jmap -heap $PID > $DATE_DIR/jmap-heap-$PID.dump 2>&1
 	echo -e ".\c"
-	jmap -histo $PID > $DATE_DIR/jmap-histo-$PID.dump 2>&1
+	j$JAVA_BIN/map -histo $PID > $DATE_DIR/jmap-histo-$PID.dump 2>&1
 	echo -e ".\c"
 	if [ -r /usr/sbin/lsof ]; then
 	/usr/sbin/lsof -p $PID > $DATE_DIR/lsof-$PID.dump
