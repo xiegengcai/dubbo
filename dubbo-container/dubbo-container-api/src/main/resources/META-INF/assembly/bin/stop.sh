@@ -1,4 +1,10 @@
 #!/bin/bash
+
+if [ ! -n "$JAVA_HOME" ]; then
+    export JAVA_HOME="/usr/local/jdk1.8.0_101"
+fi
+JAVA_BIN="$JAVA_HOME/bin"
+
 cd `dirname $0`
 BIN_DIR=`pwd`
 cd ..
@@ -11,34 +17,33 @@ if [ -z "$SERVER_NAME" ]; then
     SERVER_NAME=`hostname`
 fi
 
-PIDS=`ps -f | grep java | grep "$CONF_DIR" |awk '{print $2}'`
+PIDS=`$JAVA_BIN/jps -v|grep "serverName=$SERVER_NAME"|awk '{print $1}'`
 if [ -z "$PIDS" ]; then
     echo "ERROR: The $SERVER_NAME does not started!"
     exit 1
 fi
 
 if [ "$1" != "skip" ]; then
-    $BIN_DIR/dump.sh
-fi
+        $BIN_DIR/dump.sh
+    fi
 
-echo -e "Stopping the $SERVER_NAME ...\c"
-for PID in $PIDS ; do
-    kill $PID > /dev/null 2>&1
-done
-
-COUNT=0
-while [ $COUNT -lt 1 ]; do    
-    echo -e ".\c"
-    sleep 1
-    COUNT=1
+    echo -e "Stopping the $SERVER_NAME ...\c"
     for PID in $PIDS ; do
-        PID_EXIST=`ps -f -p $PID | grep java`
-        if [ -n "$PID_EXIST" ]; then
-            COUNT=0
-            break
-        fi
+        kill $PID > /dev/null 2>&1
     done
-done
 
+    COUNT=0
+    while [ $COUNT -lt 1 ]; do    
+        echo -e ".\c"
+        sleep 1
+        COUNT=1
+        for PID in $PIDS ; do
+            PID_EXIST=`ps -f -p $PID | grep java`
+            if [ -n "$PID_EXIST" ]; then
+                COUNT=0
+                break
+            fi
+        done
+    done
 echo "OK!"
 echo "PID: $PIDS"
