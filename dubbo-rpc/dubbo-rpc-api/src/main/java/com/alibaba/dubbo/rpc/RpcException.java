@@ -104,6 +104,10 @@ public final class RpcException extends RuntimeException {
     }
 
     public boolean isSerialization() {
-        return code == SERIALIZATION_EXCEPTION;
+        return this.code > SERIALIZATION_EXCEPTION;
+    }
+
+    public boolean isCustomized() {
+        return this.code > 5;
     }
 }
