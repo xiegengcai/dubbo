@@ -15,15 +15,15 @@
  */
 package com.alibaba.dubbo.config.spring;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-
+import com.alibaba.dubbo.common.Constants;
+import com.alibaba.dubbo.common.logger.Logger;
+import com.alibaba.dubbo.common.logger.LoggerFactory;
+import com.alibaba.dubbo.common.utils.ConcurrentHashSet;
+import com.alibaba.dubbo.common.utils.ReflectUtils;
+import com.alibaba.dubbo.config.*;
+import com.alibaba.dubbo.config.annotation.Reference;
+import com.alibaba.dubbo.config.annotation.Service;
+import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
@@ -33,23 +33,14 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
-import com.alibaba.dubbo.common.Constants;
-import com.alibaba.dubbo.common.logger.Logger;
-import com.alibaba.dubbo.common.logger.LoggerFactory;
-import com.alibaba.dubbo.common.utils.ConcurrentHashSet;
-import com.alibaba.dubbo.common.utils.ReflectUtils;
-import com.alibaba.dubbo.config.AbstractConfig;
-import com.alibaba.dubbo.config.ApplicationConfig;
-import com.alibaba.dubbo.config.ConsumerConfig;
-import com.alibaba.dubbo.config.ModuleConfig;
-import com.alibaba.dubbo.config.MonitorConfig;
-import com.alibaba.dubbo.config.ProtocolConfig;
-import com.alibaba.dubbo.config.ProviderConfig;
-import com.alibaba.dubbo.config.ReferenceConfig;
-import com.alibaba.dubbo.config.RegistryConfig;
-import com.alibaba.dubbo.config.ServiceConfig;
-import com.alibaba.dubbo.config.annotation.Reference;
-import com.alibaba.dubbo.config.annotation.Service;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * AnnotationBean
@@ -134,7 +125,9 @@ public class AnnotationBean extends AbstractConfig implements DisposableBean, Be
         if (! isMatchPackage(bean)) {
             return bean;
         }
-        Service service = bean.getClass().getAnnotation(Service.class);
+        Class<?> clazz = getBeanClass(bean);
+        Service service = clazz.getAnnotation(Service.class);
+//        Service service = bean.getClass().getAnnotation(Service.class);
         if (service != null) {
             ServiceBean<Object> serviceConfig = new ServiceBean<Object>(service);
             if (void.class.equals(service.interfaceClass())
@@ -196,6 +189,14 @@ public class AnnotationBean extends AbstractConfig implements DisposableBean, Be
         }
         return bean;
     }
+
+    private Class<?> getBeanClass(Object bean) {
+        Class<?> clazz = bean.getClass();
+        if (AopUtils.isAopProxy(bean)) {
+            clazz = AopUtils.getTargetClass(bean);
+        }
+        return clazz;
+    }
     
     public Object postProcessBeforeInitialization(Object bean, String beanName)
             throws BeansException {
@@ -210,7 +211,8 @@ public class AnnotationBean extends AbstractConfig implements DisposableBean, Be
                     && Modifier.isPublic(method.getModifiers())
                     && ! Modifier.isStatic(method.getModifiers())) {
                 try {
-                	Reference reference = method.getAnnotation(Reference.class);
+                    Class<?> clazz = getBeanClass(bean);
+                    Reference reference = clazz.getAnnotation(Reference.class);
                 	if (reference != null) {
 	                	Object value = refer(reference, method.getParameterTypes()[0]);
 	                	if (value != null) {
@@ -228,7 +230,8 @@ public class AnnotationBean extends AbstractConfig implements DisposableBean, Be
                 if (! field.isAccessible()) {
                     field.setAccessible(true);
                 }
-                Reference reference = field.getAnnotation(Reference.class);
+                Class<?> clazz = getBeanClass(bean);
+                Reference reference = clazz.getAnnotation(Reference.class);
             	if (reference != null) {
 	                Object value = refer(reference, field.getType());
 	                if (value != null) {
