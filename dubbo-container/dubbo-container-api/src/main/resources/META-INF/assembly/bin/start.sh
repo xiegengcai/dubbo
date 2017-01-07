@@ -15,6 +15,21 @@ SERVER_NAME=`sed '/dubbo.application.name/!d;s/.*=//' conf/dubbo.properties | tr
 SERVER_PROTOCOL=`sed '/dubbo.protocol.name/!d;s/.*=//' conf/dubbo.properties | tr -d '\r'`
 SERVER_PORT=`sed '/dubbo.protocol.port/!d;s/.*=//' conf/dubbo.properties | tr -d '\r'`
 LOGS_FILE=`sed '/dubbo.log4j.file/!d;s/.*=//' conf/dubbo.properties | tr -d '\r'`
+JAVA_MEM_XMS=`sed '/java.mem.xms/!d;s/.*=//' conf/dubbo.properties | tr -d '\r'`
+JAVA_MEM_XMX=`sed '/java.mem.xmx/!d;s/.*=//' conf/dubbo.properties | tr -d '\r'`
+JAVA_MEM_MAX_METASPACE_SIZE=`sed '/java.mem.max.metaspace/!d;s/.*=//' conf/dubbo.properties | tr -d '\r'`
+
+if [ -z "$JAVA_MEM_XMS" ]; then
+   JAVA_MEM_XMS = `512m`
+fi
+
+if [ -z "$JAVA_MEM_XMX" ]; then
+   JAVA_MEM_XMX = `1g`
+fi
+
+if [ -z "$JAVA_MEM_MAX_METASPACE_SIZE" ]; then
+   JAVA_MEM_MAX_METASPACE_SIZE = `128m`
+fi
 
 if [ -z "$SERVER_NAME" ]; then
     SERVER_NAME=`hostname`
@@ -59,21 +74,15 @@ JAVA_JMX_OPTS=""
 if [ "$1" = "jmx" ]; then
     JAVA_JMX_OPTS=" -Dcom.sun.management.jmxremote.port=1099 -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false "
 fi
-JAVA_MEM_OPTS=""
-BITS=`$JAVA_BIN/java -version 2>&1 | grep -i 64-bit`
-if [ -n "$BITS" ]; then
-    JAVA_MEM_OPTS=" -server -Xmx2g -Xms2g -Xmn256m -XX:MaxMetaspaceSize=128m -Xss256k -XX:+DisableExplicitGC -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+UseCMSCompactAtFullCollection -XX:LargePageSizeInBytes=128m -XX:+UseFastAccessorMethods -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=70 "
-else
-    JAVA_MEM_OPTS=" -server -Xms1g -Xmx1g -XX:MaxMetaspaceSize=218m -XX:SurvivorRatio=2 -XX:+UseParallelGC "
-fi
+JAVA_MEM_OPTS=" -server -Xmx$JAVA_MEM_XMX -Xms$JAVA_MEM_XMS -Xmn256m -XX:MaxMetaspaceSize=$JAVA_MEM_MAX_METASPACE_SIZE -Xss256k -XX:+DisableExplicitGC -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+UseCMSCompactAtFullCollection -XX:LargePageSizeInBytes=128m -XX:+UseFastAccessorMethods -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=70 "
 
 echo -e "Starting the $SERVER_NAME ...\c"
 nohup $JAVA_BIN/java $JAVA_OPTS $JAVA_MEM_OPTS $JAVA_DEBUG_OPTS $JAVA_JMX_OPTS -classpath $CONF_DIR:$LIB_JARS com.alibaba.dubbo.container.Main > $STDOUT_FILE 2>&1 &
 
 COUNT=0
-while [ $COUNT -lt 1 ]; do    
+while [ $COUNT -lt 1 ]; do
     echo -e ".\c"
-    sleep 1 
+    sleep 1
     COUNT=`$JAVA_BIN/jps -v|grep "serverName=$SERVER_NAME"|awk '{print $1}'|wc -l`
     if [ $COUNT -gt 0 ]; then
         break
